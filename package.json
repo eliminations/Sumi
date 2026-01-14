@@ -1,0 +1,32 @@
+{
+  "name": "sumi",
+  "version": "1.0.0",
+  "description": "Sumi — Claude Sentry. Telegram-based repository security observer.",
+  "main": "dist/bot/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/bot/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only bot/index.ts",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "security",
+    "web3",
+    "github",
+    "scanner"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "telegraf": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.0"
+  }
+}

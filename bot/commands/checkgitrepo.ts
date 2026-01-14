@@ -3,6 +3,7 @@ import { GitHubScanner } from '../services/githubScanner';
 import { SecurityAnalyzer, SecurityAnalysis } from '../services/securityAnalyzer';
 import { getShortMascot } from '../utils/randomMascot';
 import { getInvalidUrl, getMissingArgs, getError } from '../utils/variations';
+import { formatResponse } from '../utils/formatter';
 
 function getConfidenceMeter(confidenceScore: number, confidenceLevel: 'HIGH' | 'MEDIUM' | 'LOW'): string {
   const bars = Math.floor(confidenceScore / 10);
@@ -25,7 +26,8 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
     };
 
     if (!args) {
-      await ctx.reply(`${getMissingArgs()}\n\nexample: /checkgitrepo https://github.com/owner/repo`, replyOptions);
+      const errorMsg = formatResponse(`${getMissingArgs()}\n\nexample: /checkgitrepo https://github.com/owner/repo`);
+      await ctx.reply(errorMsg, replyOptions);
       return;
     }
 
@@ -36,12 +38,14 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
       'thinking... reading between lines.',
       'thinking... mapping the structure.'
     ];
-    await ctx.reply(thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)], replyOptions);
+    const thinkingMsg = formatResponse(thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)]);
+    await ctx.reply(thinkingMsg, replyOptions);
 
     try {
       const parsed = await scanner.parseRepoUrl(args);
       if (!parsed) {
-        await ctx.reply(getInvalidUrl(), replyOptions);
+        const errorMsg = formatResponse(getInvalidUrl());
+        await ctx.reply(errorMsg, replyOptions);
         return;
       }
 
@@ -75,7 +79,8 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
         response += '\n' + lowConfidenceNotes[Math.floor(Math.random() * lowConfidenceNotes.length)] + '\n';
       }
 
-      await ctx.reply(`\`\`\`\n${response}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
+      const formattedResponse = formatResponse(response);
+      await ctx.reply(`\`\`\`\n${formattedResponse}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
     } catch (error) {
       const mascot = getShortMascot(Math.random() < 0.5 ? 'cat' : 'octopus');
       let response = `${mascot}\n\n`;
@@ -83,7 +88,8 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
       response += `Risk Level:     SUSPICIOUS\n`;
       response += getConfidenceMeter(30, 'LOW') + '\n';
       response += '\nno meaningful risk signals detected.\n';
-      await ctx.reply(`\`\`\`\n${response}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
+      const formattedResponse = formatResponse(response);
+      await ctx.reply(`\`\`\`\n${formattedResponse}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
     }
   };
 }

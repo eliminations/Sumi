@@ -1,10 +1,11 @@
 import { Context } from 'telegraf';
 import { randomMascot } from '../utils/randomMascot';
+import { formatResponse } from '../utils/formatter';
 
 export async function handleStart(ctx: Context) {
   const mascot = randomMascot();
   
-  const message = `${mascot.art}
+  const rawMessage = `${mascot.art}
 
 Sumi has arrived.
 
@@ -24,9 +25,16 @@ I'll judge its security.
 /checkreusage <github_url | project_name>
 I'll tell you if it's been unfaithful.
 
+/sumix
+Follow me on X.
+
+/sumigit
+Inspect my code.
+
 Now.
 Show me the code, darling.`;
 
+  const message = formatResponse(rawMessage);
   const replyOptions = {
     reply_to_message_id: ctx.message.message_id
   };

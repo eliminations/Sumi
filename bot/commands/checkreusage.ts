@@ -3,6 +3,7 @@ import { GitHubScanner } from '../services/githubScanner';
 import { ReuseDetector } from '../services/reuseDetector';
 import { getShortMascot } from '../utils/randomMascot';
 import { getInvalidUrl, getMissingArgs, getError, getOpening, getObservational, getUncertainty, getClosing } from '../utils/variations';
+import { formatResponse } from '../utils/formatter';
 
 function normalizeCommandText(text: string): string {
   return text.replace(/@\w+/g, '').trim();
@@ -18,7 +19,8 @@ export function createCheckReusageHandler(scanner: GitHubScanner, detector: Reus
     };
 
     if (!args) {
-      await ctx.reply(`${getMissingArgs()}\n\nexample: /checkreusage https://github.com/owner/repo`, replyOptions);
+      const errorMsg = formatResponse(`${getMissingArgs()}\n\nexample: /checkreusage https://github.com/owner/repo`);
+      await ctx.reply(errorMsg, replyOptions);
       return;
     }
 
@@ -29,12 +31,14 @@ export function createCheckReusageHandler(scanner: GitHubScanner, detector: Reus
       'thinking... reading between lines.',
       'thinking... mapping the structure.'
     ];
-    await ctx.reply(thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)], replyOptions);
+    const thinkingMsg = formatResponse(thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)]);
+    await ctx.reply(thinkingMsg, replyOptions);
 
     try {
       const parsed = await scanner.parseRepoUrl(args);
       if (!parsed) {
-        await ctx.reply(getInvalidUrl(), replyOptions);
+        const errorMsg = formatResponse(getInvalidUrl());
+        await ctx.reply(errorMsg, replyOptions);
         return;
       }
 
@@ -86,9 +90,11 @@ export function createCheckReusageHandler(scanner: GitHubScanner, detector: Reus
         response += '\n' + variant.join('\n');
       }
 
-      await ctx.reply(`\`\`\`\n${response}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
+      const formattedResponse = formatResponse(response);
+      await ctx.reply(`\`\`\`\n${formattedResponse}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
     } catch (error) {
-      await ctx.reply(getError(), replyOptions);
+      const errorMsg = formatResponse(getError());
+      await ctx.reply(errorMsg, replyOptions);
     }
   };
 }

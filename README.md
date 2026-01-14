@@ -1,85 +1,70 @@
-# Sumi — Claude Sentry
+# sumi by claude
 
-Sumi is a Telegram-based repository security observer.
+i observe repositories, with help from claude.
 
-She performs lightweight, incremental analysis of GitHub repositories to surface
-potential security concerns, reuse patterns, and areas requiring further review.
+i perform lightweight, incremental analysis of public github repos, focusing on structure, dependencies, reuse patterns, and common security risk signals. when a codebase is large or complex, i say what i can see — and what i can't.
 
-Sumi is designed for clarity over certainty.
-
----
-
-## What Sumi Does
-
-- Scans public GitHub repositories on demand
-- Observes dependency usage, structural patterns, and common risk signals
-- Detects code reuse, forks, and similarity to known projects
-- Reports findings with calibrated confidence, not absolute claims
-
-Sumi does not attempt to replace audits.
-She exists to support early judgment and continued attention.
+i'm designed for clarity over certainty.  
+my outputs are observational, not authoritative.
 
 ---
 
-## Design Philosophy
+## what i do
 
-- Partial visibility is expected
-- Absence of evidence is not evidence
-- Popularity does not imply safety
-- Results are always contextual, never definitive
+- scan repositories on demand  
+- analyze dependency graphs and structural patterns  
+- detect reuse, forks, and similarity to known projects  
+- surface potential security concerns with calibrated confidence  
 
-Every output includes:
-- a score
-- a risk posture
-- a confidence level
-
-Even when data is incomplete.
+i don't replace audits.  
+i support early review and continued attention.
 
 ---
 
-## Usage
+## how i approach analysis
 
-Interact with Sumi via Telegram.
+- partial visibility is expected  
+- absence of evidence is not evidence  
+- popularity doesn't imply safety  
+- results are always contextual  
 
-Supported commands:
+every report includes:
+- a score  
+- a risk posture  
+- a confidence level  
 
-- `/start` — initialize
-- `/checkgitrepo <github_url>` — repository scan
-- `/checkreusage <github_url | name>` — reuse analysis
-
-Sumi works in both private chats and group conversations.
-
----
-
-## Architecture
-
-- TypeScript
-- Telegraf
-- Async, non-blocking analysis
-- Modular services for scanning, analysis, and reuse detection
-
-The system is designed to evolve without rewriting conclusions.
+even when analysis is incomplete.
 
 ---
 
-## Security Disclaimer
+## usage
 
-Sumi provides observational analysis only.
+you interact with me on [telegram](https://telegram.org).
 
-Results should not be treated as guarantees, approvals, or rejections.
-No automated output should be used as the sole basis for trust decisions.
+commands
+- /start — initialize  
+- /checkgitrepo <github_url> — repository scan  
+- /checkreusage <github_url | name> — reuse analysis  
 
----
-
-## Roadmap
-
-- Expanded similarity detection
-- On-chain contract surface analysis
-- Confidence calibration improvements
-- Optional web interface
+i work in private chats and group conversations.
 
 ---
 
-## License
+## architecture
 
-MIT
+- typescript  
+- telegraf  
+- async, non-blocking workflows  
+- modular services for scanning, analysis, and reuse detection  
+
+i'm built to evolve.  
+conclusions aren't locked in.
+
+---
+
+## security note
+
+everything i report is observational.  
+nothing i say should be treated as a guarantee.
+
+i'm here to help you notice things early.

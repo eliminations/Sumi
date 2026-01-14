@@ -8,9 +8,12 @@ import axios from 'axios';
 import { handleStart } from './commands/start';
 import { createCheckGitRepoHandler } from './commands/checkgitrepo';
 import { createCheckReusageHandler } from './commands/checkreusage';
+import { handleSumiX } from './commands/sumix';
+import { handleSumiGit } from './commands/sumigit';
 import { GitHubScanner } from './services/githubScanner';
 import { SecurityAnalyzer } from './services/securityAnalyzer';
 import { ReuseDetector } from './services/reuseDetector';
+import { formatResponse } from './utils/formatter';
 
 // Startup diagnostics
 console.log('[DIAG] Current working directory:', process.cwd());
@@ -32,6 +35,8 @@ const reuseDetector = new ReuseDetector(scanner);
 bot.command('start', handleStart);
 bot.command('checkgitrepo', createCheckGitRepoHandler(scanner, securityAnalyzer));
 bot.command('checkreusage', createCheckReusageHandler(scanner, reuseDetector));
+bot.command('sumix', handleSumiX);
+bot.command('sumigit', handleSumiGit);
 
 bot.on('text', async (ctx) => {
   const text = ctx.message.text;
@@ -40,7 +45,8 @@ bot.on('text', async (ctx) => {
     return;
   }
 
-  await ctx.reply('I only respond to commands, darling.\n\nTry /start to begin.');
+  const message = formatResponse('I only respond to commands, darling.\n\nTry /start to begin.');
+  await ctx.reply(message);
 });
 
 bot.launch().then(async () => {
@@ -51,7 +57,9 @@ bot.launch().then(async () => {
     const commands = [
       { command: 'start', description: 'Initialize Sumi' },
       { command: 'checkgitrepo', description: 'Repository security scan' },
-      { command: 'checkreusage', description: 'Code reuse analysis' }
+      { command: 'checkreusage', description: 'Code reuse analysis' },
+      { command: 'sumix', description: 'Follow Sumi on X' },
+      { command: 'sumigit', description: 'Sumi on GitHub' }
     ];
     
     await bot.telegram.setMyCommands(commands);

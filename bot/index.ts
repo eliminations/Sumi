@@ -33,7 +33,7 @@ const securityAnalyzer = new SecurityAnalyzer(scanner);
 const reuseDetector = new ReuseDetector(scanner);
 
 bot.command('start', handleStart);
-bot.command('checkgitrepo', createCheckGitRepoHandler(scanner, securityAnalyzer));
+bot.command('scanrepo', createCheckGitRepoHandler(scanner, securityAnalyzer));
 bot.command('checkreusage', createCheckReusageHandler(scanner, reuseDetector));
 bot.command('sumix', handleSumiX);
 bot.command('sumigit', handleSumiGit);
@@ -45,7 +45,7 @@ bot.on('text', async (ctx) => {
     return;
   }
 
-  const message = formatResponse('I only respond to commands, darling.\n\nTry /start to begin.');
+  const message = formatResponse('i only respond to commands.\n\ntry /start to begin.');
   await ctx.reply(message);
 });
 
@@ -56,7 +56,7 @@ bot.launch().then(async () => {
     
     const commands = [
       { command: 'start', description: 'Initialize Sumi' },
-      { command: 'checkgitrepo', description: 'Repository security scan' },
+      { command: 'scanrepo', description: 'Repository security scan' },
       { command: 'checkreusage', description: 'Code reuse analysis' },
       { command: 'sumix', description: 'Follow Sumi on X' },
       { command: 'sumigit', description: 'Sumi on GitHub' }

@@ -2,26 +2,21 @@ import { Context } from 'telegraf';
 import { formatResponse } from '../utils/formatter';
 
 const sumigitVariants = [
-  `sumi's source:
-https://github.com/eliminations/Sumi
+  `https://github.com/eliminations/Sumi
 
-code reveals truth.`,
-  `find sumi's code:
-https://github.com/eliminations/Sumi
+source is visible.`,
+  `https://github.com/eliminations/Sumi
 
-transparency builds trust.`,
-  `sumi's repository:
-https://github.com/eliminations/Sumi
+code is open.`,
+  `https://github.com/eliminations/Sumi
 
-open source, open scrutiny.`,
-  `sumi's codebase:
-https://github.com/eliminations/Sumi
+implementation available.`,
+  `https://github.com/eliminations/Sumi
 
-inspect what you trust.`,
-  `sumi on github:
-https://github.com/eliminations/Sumi
+you can inspect it.`,
+  `https://github.com/eliminations/Sumi
 
-read the implementation.`
+read if you want.`
 ];
 
 export async function handleSumiGit(ctx: Context) {

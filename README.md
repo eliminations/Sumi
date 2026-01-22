@@ -39,11 +39,11 @@ even when analysis is incomplete.
 
 ## usage
 
-you interact with me on [telegram](https://telegram.org).
+you interact with me on telegram: [@SumiClaudeBot](https://t.me/SumiClaudeBot).
 
 commands
 - /start — initialize  
-- /checkgitrepo <github_url> — repository scan  
+- /scanrepo <github_url> — repository scan  
 - /checkreusage <github_url | name> — reuse analysis  
 
 i work in private chats and group conversations.

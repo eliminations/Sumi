@@ -20,11 +20,54 @@ function softenAbsolutes(text: string): string {
       if (word === 'always') return 'often';
       if (word === 'never') return 'rarely';
       if (word === 'impossible') return 'unlikely';
+      if (word === 'darling') return '';
+      if (word === 'perfect') return 'adequate';
+      if (word === 'complete') return 'partial';
+      if (word === 'finished') return 'ongoing';
+      if (word === 'done') return 'in progress';
+      if (word === 'final') return 'current';
+      if (word === 'ultimate') return '';
+      if (word === 'best') return 'reasonable';
+      if (word === 'worst') return 'concerning';
+      if (word === 'amazing') return 'notable';
+      if (word === 'incredible') return 'unusual';
+      if (word === 'fantastic') return 'adequate';
+      if (word === 'awesome') return 'adequate';
       return match.toLowerCase();
     });
   }
   
   return result;
+}
+
+function removeMarketingLanguage(text: string): string {
+  const marketingPatterns = [
+    /\b(discover|unlock|transform|revolutionize|breakthrough|game.?changer)\b/gi,
+    /\b(guaranteed|proven|tested|trusted|reliable|secure)\b/gi,
+    /\b(amazing|incredible|fantastic|awesome|perfect|ultimate)\b/gi,
+  ];
+  
+  let result = text;
+  for (const pattern of marketingPatterns) {
+    result = result.replace(pattern, '');
+  }
+  
+  return result.replace(/\s+/g, ' ').trim();
+}
+
+function removePerformativeConfidence(text: string): string {
+  const performativePatterns = [
+    /\bi (know|guarantee|promise|assure|confirm|verify)\b/gi,
+    /\b(trust me|believe me|i'm certain|i'm sure)\b/gi,
+    /\b(without a doubt|no question|absolutely|definitely)\b/gi,
+  ];
+  
+  let result = text;
+  for (const pattern of performativePatterns) {
+    result = result.replace(pattern, '');
+  }
+  
+  return result.replace(/\s+/g, ' ').trim();
 }
 
 function limitEllipses(text: string): string {
@@ -99,21 +142,59 @@ function restoreCodeBlocks(text: string, blocks: string[]): string {
   return result;
 }
 
+function preserveStructuredLabels(text: string): { text: string; labels: Map<string, string> } {
+  // Patterns to preserve structured data labels and their values
+  const labelPatterns = [
+    /(Security Score:\s*\d+\s*\/\s*\d+)/g,
+    /(Risk Level:\s*[A-Z_]+)/g,
+    /(Reuse Score:\s*\d+%)/g,
+    /(Verdict:\s*[A-Z_\s]+)/g,
+    /(Confidence:\s*\[[#-]+\]\s*\d+%\s*[A-Z]+)/g,
+  ];
+  
+  const labels = new Map<string, string>();
+  let labelIndex = 0;
+  let result = text;
+  
+  for (const pattern of labelPatterns) {
+    result = result.replace(pattern, (match) => {
+      const placeholder = `__LABEL_${labelIndex}__`;
+      labels.set(placeholder, match);
+      labelIndex++;
+      return placeholder;
+    });
+  }
+  
+  return { text: result, labels };
+}
+
+function restoreStructuredLabels(text: string, labels: Map<string, string>): string {
+  let result = text;
+  labels.forEach((original, placeholder) => {
+    result = result.replace(placeholder, original);
+  });
+  return result;
+}
+
 export function formatResponse(text: string): string {
   if (!text || text.trim().length === 0) {
     return text;
   }
   
   const { text: textWithoutBlocks, blocks } = preserveCodeBlocks(text);
+  const { text: textWithoutLabels, labels } = preserveStructuredLabels(textWithoutBlocks);
   
-  let formatted = textWithoutBlocks;
+  let formatted = textWithoutLabels;
   
   formatted = toLowercase(formatted);
   formatted = removeExclamationMarks(formatted);
   formatted = softenAbsolutes(formatted);
+  formatted = removeMarketingLanguage(formatted);
+  formatted = removePerformativeConfidence(formatted);
   formatted = limitEllipses(formatted);
   formatted = formatLines(formatted);
   
+  formatted = restoreStructuredLabels(formatted, labels);
   formatted = restoreCodeBlocks(formatted, blocks);
   
   return formatted.trim();

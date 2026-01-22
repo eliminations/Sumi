@@ -7,32 +7,33 @@ export async function handleStart(ctx: Context) {
   
   const rawMessage = `${mascot.art}
 
-Sumi has arrived.
+i observe repositories.
 
-I read GitHub repos slowly.
-Line by line.
-Until they confess.
+i perform lightweight analysis of public github repos.
+structure, dependencies, reuse patterns, security signals.
 
-I expose security risks.
-I uncover stolen Web3 code.
-I tell you who's safe to trust.
+when a codebase is large or complex,
+i say what i can see.
+and what i can't.
 
-Whisper a command to me:
+i'm designed for clarity over certainty.
+my outputs are observational, not authoritative.
 
-/checkgitrepo <github_url>
-I'll judge its security.
+commands:
 
-/checkreusage <github_url | project_name>
-I'll tell you if it's been unfaithful.
+/scanrepo <github_url>
+repository scan
+
+/checkreusage <github_url | name>
+reuse analysis
 
 /sumix
-Follow me on X.
+find me on x
 
 /sumigit
-Inspect my code.
+inspect my code
 
-Now.
-Show me the code, darling.`;
+i work in private chats and group conversations.`;
 
   const message = formatResponse(rawMessage);
   const replyOptions = {

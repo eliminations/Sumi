@@ -26,17 +26,17 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
     };
 
     if (!args) {
-      const errorMsg = formatResponse(`${getMissingArgs()}\n\nexample: /checkgitrepo https://github.com/owner/repo`);
+      const errorMsg = formatResponse(`${getMissingArgs()}\n\nexample: /scanrepo https://github.com/owner/repo`);
       await ctx.reply(errorMsg, replyOptions);
       return;
     }
 
     const thinkingVariants = [
-      'thinking... sharp claws, deeper cuts.',
-      'thinking... tracing the threads.',
-      'thinking... following the patterns.',
-      'thinking... reading between lines.',
-      'thinking... mapping the structure.'
+      'tracing the surface...',
+      'mapping what\'s visible...',
+      'reading the structure...',
+      'following patterns...',
+      'observing...'
     ];
     const thinkingMsg = formatResponse(thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)]);
     await ctx.reply(thinkingMsg, replyOptions);
@@ -58,38 +58,67 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
 
       const mascot = getShortMascot(Math.random() < 0.5 ? 'cat' : 'octopus');
       
+      // opening: acknowledge action taken
+      const openingVariants = [
+        'i took a look.',
+        'i spent some time with it.',
+        'i went through what was visible.',
+        'i looked where i could.',
+        'i started tracing the surface.'
+      ];
+      
       let response = `${mascot}\n\n`;
+      response += openingVariants[Math.floor(Math.random() * openingVariants.length)] + '\n\n';
+      
+      // middle: describe observations
       response += `Security Score: ${String(score).padStart(3)} / 100\n`;
       response += `Risk Level:     ${riskLevel}\n`;
-
       response += getConfidenceMeter(confidenceScore, confidenceLevel) + '\n';
 
       if (analysis.scoreRationale) {
         response += `\n${analysis.scoreRationale}\n`;
       }
 
+      // surface uncertainty naturally
       if (confidenceLevel !== 'HIGH') {
-        const lowConfidenceNotes = [
-          'some parts were harder to reach.',
-          'results reflect what was visible.',
-          'partial visibility.',
-          'limited access to content.',
-          'some depth remains unmeasured.'
+        const uncertaintyNotes = [
+          'there\'s still more i haven\'t seen.',
+          'this only covers part of it.',
+          'some depth remains unmeasured.',
+          'the picture isn\'t complete.',
+          'absence of evidence isn\'t clarity.'
         ];
-        response += '\n' + lowConfidenceNotes[Math.floor(Math.random() * lowConfidenceNotes.length)] + '\n';
+        response += '\n' + uncertaintyNotes[Math.floor(Math.random() * uncertaintyNotes.length)] + '\n';
+      } else {
+        const highConfidenceNotes = [
+          'visible structure seems consistent.',
+          'what i could see suggests...',
+          'patterns appear stable.',
+          'surface looks coherent.'
+        ];
+        response += '\n' + highConfidenceNotes[Math.floor(Math.random() * highConfidenceNotes.length)] + '\n';
       }
+      
+      // closing: suggest continued attention or caution
+      const closingVariants = [
+        'worth keeping an eye on.',
+        'i wouldn\'t stop watching it.',
+        'attention over time would help.',
+        'it\'s too early to relax.',
+        'nothing here asks for trust yet.'
+      ];
+      response += '\n' + closingVariants[Math.floor(Math.random() * closingVariants.length)];
 
       const formattedResponse = formatResponse(response);
       await ctx.reply(`\`\`\`\n${formattedResponse}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
     } catch (error) {
       const mascot = getShortMascot(Math.random() < 0.5 ? 'cat' : 'octopus');
       let response = `${mascot}\n\n`;
-      response += `Security Score: ${String(50).padStart(3)} / 100\n`;
-      response += `Risk Level:     SUSPICIOUS\n`;
-      response += getConfidenceMeter(30, 'LOW') + '\n';
-      response += '\nno meaningful risk signals detected.\n';
+      response += 'i couldn\'t complete that.\n';
+      response += 'something interrupted the scan.\n\n';
+      response += 'try again later.';
       const formattedResponse = formatResponse(response);
-      await ctx.reply(`\`\`\`\n${formattedResponse}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
+      await ctx.reply(formattedResponse, replyOptions);
     }
   };
 }

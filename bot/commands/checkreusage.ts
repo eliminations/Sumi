@@ -25,11 +25,11 @@ export function createCheckReusageHandler(scanner: GitHubScanner, detector: Reus
     }
 
     const thinkingVariants = [
-      'thinking...',
-      'thinking... tracing the threads.',
-      'thinking... following the patterns.',
-      'thinking... reading between lines.',
-      'thinking... mapping the structure.'
+      'tracing patterns...',
+      'comparing structures...',
+      'looking for similarities...',
+      'mapping reuse...',
+      'observing...'
     ];
     const thinkingMsg = formatResponse(thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)]);
     await ctx.reply(thinkingMsg, replyOptions);
@@ -46,54 +46,85 @@ export function createCheckReusageHandler(scanner: GitHubScanner, detector: Reus
 
       const mascot = getShortMascot(Math.random() < 0.5 ? 'cat' : 'octopus');
       
+      // opening: acknowledge action taken
+      const openingVariants = [
+        'i compared patterns.',
+        'i looked for similarities.',
+        'i traced reuse signals.',
+        'i mapped structural patterns.',
+        'i observed the codebase.'
+      ];
+      
       let response = `${mascot}\n\n`;
+      response += openingVariants[Math.floor(Math.random() * openingVariants.length)] + '\n\n';
+      
+      // middle: describe observations
       response += `Reuse Score: ${String(analysis.reuseScore).padStart(3)}%\n`;
-      response += `Verdict:     ${analysis.verdict.replace(/_/g, ' ')}\n`;
+      response += `Verdict:     ${analysis.verdict.replace(/_/g, ' ')}\n\n`;
 
       if (analysis.verdict === 'ORIGINAL') {
         const originalVariants = [
-          ['fresh structure.', 'clean history.', 'no obvious copying.', 'i like that.', 'confidence looks good on a project.'],
-          ['original structure.', 'clean patterns.', 'nothing copied.', 'that\'s good.', 'originality shows.'],
-          ['unique layout.', 'no reuse visible.', 'clean code.', 'i appreciate that.', 'originality matters.'],
-          ['distinct structure.', 'no copying found.', 'clean history.', 'that works.', 'originality is clear.'],
-          ['fresh patterns.', 'no reuse detected.', 'clean codebase.', 'i respect that.', 'originality stands out.']
+          'structure looks distinct.',
+          'patterns seem original.',
+          'no obvious reuse visible.',
+          'structure appears unique.',
+          'patterns don\'t match known templates.'
         ];
-        const variant = originalVariants[Math.floor(Math.random() * originalVariants.length)];
-        response += '\n' + variant.join('\n');
+        response += originalVariants[Math.floor(Math.random() * originalVariants.length)] + '\n';
+        response += 'absence of reuse signals observed.\n';
       } else if (analysis.verdict === 'FORKED') {
         const forkVariants = [
-          'this is a fork.\nnothing wrong with that.',
-          'marked as a fork.\nthat\'s fine.',
-          'it\'s a fork.\nacceptable.',
-          'forked repository.\nnothing unusual.',
-          'a fork.\nno problem.'
+          'marked as a fork.',
+          'this is a fork.',
+          'forked repository.',
+          'derived from another project.'
         ];
-        response += '\n' + forkVariants[Math.floor(Math.random() * forkVariants.length)];
+        response += forkVariants[Math.floor(Math.random() * forkVariants.length)] + '\n';
+        response += 'that\'s visible in the history.\n';
       } else if (analysis.verdict === 'HEAVILY_REUSED') {
         const reusedVariants = [
-          'this code has been around.\na lot.',
-          'heavy reuse detected.\nvery familiar.',
-          'this code is reused.\nextensively.',
-          'familiar patterns.\nheavily reused.',
-          'this has been used.\nmany times.'
+          'familiar patterns throughout.',
+          'structure matches known templates.',
+          'patterns suggest reuse.',
+          'structure appears reused.',
+          'familiar layout observed.'
         ];
-        response += '\n' + reusedVariants[Math.floor(Math.random() * reusedVariants.length)];
+        response += reusedVariants[Math.floor(Math.random() * reusedVariants.length)] + '\n';
+        response += 'similarity to other projects is notable.\n';
       } else {
-        const stolenVariants = [
-          ['this code feels familiar.', 'same structure.', 'same habits.', 'same little mistakes.', 'it\'s been around.', 'and it wasn\'t loyal.', 'originality matters.', 'in code — and in trust.'],
-          ['familiar patterns.', 'same structure.', 'same mistakes.', 'this isn\'t original.', 'it\'s been copied.', 'without credit.', 'originality matters.', 'trust requires it.'],
-          ['this feels copied.', 'same structure.', 'same patterns.', 'same errors.', 'it\'s been around.', 'not as original.', 'originality matters.', 'so does trust.'],
-          ['familiar code.', 'same layout.', 'same habits.', 'same flaws.', 'been used before.', 'not original.', 'originality counts.', 'trust depends on it.'],
-          ['this looks copied.', 'same structure.', 'same patterns.', 'same mistakes.', 'it\'s familiar.', 'too familiar.', 'originality matters.', 'trust needs it.']
+        const copiedVariants = [
+          'familiar patterns observed.',
+          'structure matches known code.',
+          'patterns suggest copying.',
+          'structure appears copied.',
+          'familiar layout detected.'
         ];
-        const variant = stolenVariants[Math.floor(Math.random() * stolenVariants.length)];
-        response += '\n' + variant.join('\n');
+        response += copiedVariants[Math.floor(Math.random() * copiedVariants.length)] + '\n';
+        response += 'similarity to other projects is significant.\n';
       }
+      
+      // surface uncertainty naturally
+      const uncertaintyNotes = [
+        'there may be more i haven\'t seen.',
+        'this reflects what was visible.',
+        'partial visibility applies here too.',
+        'some patterns may remain unobserved.'
+      ];
+      response += '\n' + uncertaintyNotes[Math.floor(Math.random() * uncertaintyNotes.length)] + '\n';
+      
+      // closing: suggest continued attention
+      const closingVariants = [
+        'worth noting.',
+        'something to keep in mind.',
+        'worth attention.',
+        'notable pattern.'
+      ];
+      response += '\n' + closingVariants[Math.floor(Math.random() * closingVariants.length)];
 
       const formattedResponse = formatResponse(response);
       await ctx.reply(`\`\`\`\n${formattedResponse}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
     } catch (error) {
-      const errorMsg = formatResponse(getError());
+      const errorMsg = formatResponse('i couldn\'t complete that.\nsomething interrupted the analysis.\n\ntry again later.');
       await ctx.reply(errorMsg, replyOptions);
     }
   };

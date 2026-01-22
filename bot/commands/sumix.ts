@@ -2,26 +2,21 @@ import { Context } from 'telegraf';
 import { formatResponse } from '../utils/formatter';
 
 const sumixVariants = [
-  `follow sumi on x:
-https://x.com/sumibyclaude
+  `https://x.com/sumibyclaude
 
-observation sharpens focus.`,
-  `find sumi here:
-https://x.com/sumibyclaude
+observing there too.`,
+  `https://x.com/sumibyclaude
 
-more dangerous when observed.`,
-  `sumi's presence:
-https://x.com/sumibyclaude
+sometimes present.`,
+  `https://x.com/sumibyclaude
 
-attention increases clarity.`,
-  `discover sumi:
-https://x.com/sumibyclaude
+occasional observations.`,
+  `https://x.com/sumibyclaude
 
-watchfulness enhances precision.`,
-  `sumi's digital footprint:
-https://x.com/sumibyclaude
+watching from there.`,
+  `https://x.com/sumibyclaude
 
-observation amplifies awareness.`
+another place to observe.`
 ];
 
 export async function handleSumiX(ctx: Context) {

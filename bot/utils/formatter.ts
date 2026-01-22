@@ -46,13 +46,13 @@ function removeMarketingLanguage(text: string): string {
     /\b(guaranteed|proven|tested|trusted|reliable|secure)\b/gi,
     /\b(amazing|incredible|fantastic|awesome|perfect|ultimate)\b/gi,
   ];
-  
+
   let result = text;
   for (const pattern of marketingPatterns) {
     result = result.replace(pattern, '');
   }
-  
-  return result.replace(/\s+/g, ' ').trim();
+
+  return result.split('\n').map(line => line.replace(/  +/g, ' ').trim()).join('\n');
 }
 
 function removePerformativeConfidence(text: string): string {
@@ -61,13 +61,13 @@ function removePerformativeConfidence(text: string): string {
     /\b(trust me|believe me|i'm certain|i'm sure)\b/gi,
     /\b(without a doubt|no question|absolutely|definitely)\b/gi,
   ];
-  
+
   let result = text;
   for (const pattern of performativePatterns) {
     result = result.replace(pattern, '');
   }
-  
-  return result.replace(/\s+/g, ' ').trim();
+
+  return result.split('\n').map(line => line.replace(/  +/g, ' ').trim()).join('\n');
 }
 
 function limitEllipses(text: string): string {

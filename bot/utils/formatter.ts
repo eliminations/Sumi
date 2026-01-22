@@ -158,7 +158,7 @@ function preserveStructuredLabels(text: string): { text: string; labels: Map<str
   
   for (const pattern of labelPatterns) {
     result = result.replace(pattern, (match) => {
-      const placeholder = `__LABEL_${labelIndex}__`;
+      const placeholder = `__label_${labelIndex}__`;
       labels.set(placeholder, match);
       labelIndex++;
       return placeholder;

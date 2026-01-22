@@ -19,6 +19,11 @@ export interface SecurityAnalysis {
   riskPosture?: string;
   walletNote?: string;
   intentionalVulnerabilityNote?: string;
+  surfaceReality?: string[];
+  structuralObservations?: string[];
+  dependencyObservations?: string[];
+  synthesisObservations?: string[];
+  uncertaintyAreas?: string[];
 }
 
 interface CacheEntry {
@@ -172,18 +177,30 @@ export class SecurityAnalyzer {
     const walletNote = hasWalletConnection ? 'wallet connection detected (common web3 pattern).\nslight trust adjustment applied.' : undefined;
     const intentionalVulnerabilityNote = isIntentionallyVulnerable ? 'this project appears intentionally vulnerable or educational.\nsecurity risks are expected.' : undefined;
 
-    const analysis: SecurityAnalysis = { 
-      score, 
-      riskLevel, 
-      findings: maliciousFindings, 
-      repoIntent, 
+    // layered analysis
+    const surfaceReality = this.analyzeSurfaceReality(defaultRepoInfo, languages, filePaths);
+    const structuralObservations = this.analyzeStructuralCoherence(filePaths);
+    const dependencyObservations = this.analyzeDependencyRisk(filePaths);
+    const synthesisObservations = this.generateSynthesisObservations(maliciousFindings, filePaths, defaultRepoInfo, confidenceLevel);
+    const uncertaintyAreas = this.generateUncertaintyAreas(confidenceLevel, filePaths, maliciousFindings);
+
+    const analysis: SecurityAnalysis = {
+      score,
+      riskLevel,
+      findings: maliciousFindings,
+      repoIntent,
       confidenceLevel,
       confidenceScore,
       intentScore,
       scoreRationale,
       riskPosture,
       walletNote,
-      intentionalVulnerabilityNote
+      intentionalVulnerabilityNote,
+      surfaceReality,
+      structuralObservations,
+      dependencyObservations,
+      synthesisObservations,
+      uncertaintyAreas
     };
 
     if (commitSha) {
@@ -915,6 +932,7 @@ export class SecurityAnalyzer {
     contents: any[]
   ): SecurityFinding[] {
     const filtered: SecurityFinding[] = [];
+    const isSystemCode = this.isSystemOrKernelCode(contents);
 
     for (const finding of findings) {
       if (this.isMaliciousIntent(finding)) {
@@ -1043,6 +1061,276 @@ export class SecurityAnalyzer {
     }
 
     return 'low-risk repository with no malicious behavior.';
+  }
+
+  private analyzeSurfaceReality(
+    repoInfo: RepoInfo | null,
+    languages: Record<string, number>,
+    filePaths: string[]
+  ): string[] {
+    const observations: string[] = [];
+
+    // language mix
+    if (Object.keys(languages).length > 0) {
+      const langList = Object.keys(languages).slice(0, 3).join(', ').toLowerCase();
+      const langCount = Object.keys(languages).length;
+      if (langCount > 3) {
+        observations.push(`${langList}, and ${langCount - 3} more languages`);
+      } else {
+        observations.push(langList);
+      }
+    }
+
+    // repo size
+    if (filePaths.length > 0) {
+      if (filePaths.length > 1000) {
+        observations.push(`${filePaths.length} files (large codebase)`);
+      } else if (filePaths.length > 100) {
+        observations.push(`${filePaths.length} files`);
+      } else {
+        observations.push(`${filePaths.length} files (small surface)`);
+      }
+    }
+
+    // age and activity
+    if (repoInfo) {
+      const created = new Date(repoInfo.createdAt);
+      const updated = new Date(repoInfo.updatedAt);
+      const ageInDays = Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24));
+      const lastUpdateDays = Math.floor((Date.now() - updated.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (ageInDays > 365) {
+        const years = Math.floor(ageInDays / 365);
+        observations.push(`${years} year${years > 1 ? 's' : ''} old`);
+      } else if (ageInDays > 30) {
+        const months = Math.floor(ageInDays / 30);
+        observations.push(`${months} month${months > 1 ? 's' : ''} old`);
+      } else {
+        observations.push('recently created');
+      }
+
+      if (lastUpdateDays === 0) {
+        observations.push('active today');
+      } else if (lastUpdateDays < 7) {
+        observations.push('active this week');
+      } else if (lastUpdateDays < 30) {
+        observations.push(`last updated ${lastUpdateDays} days ago`);
+      } else if (lastUpdateDays > 365) {
+        observations.push('dormant for over a year');
+      }
+
+      // stars/forks
+      if (repoInfo.stars > 1000) {
+        observations.push(`${repoInfo.stars} stars (visible attention)`);
+      } else if (repoInfo.stars > 100) {
+        observations.push(`${repoInfo.stars} stars`);
+      }
+    }
+
+    // test presence
+    const hasTests = filePaths.some(p =>
+      /test|spec|__tests__/.test(p.toLowerCase())
+    );
+    if (hasTests) {
+      observations.push('test files present');
+    } else {
+      observations.push('no obvious test structure');
+    }
+
+    // ci config
+    const hasCI = filePaths.some(p =>
+      p.includes('.github/workflows') ||
+      p.includes('.gitlab-ci') ||
+      p.includes('.circleci') ||
+      p.includes('jenkins') ||
+      p.includes('.travis.yml')
+    );
+    if (hasCI) {
+      observations.push('ci configuration found');
+    }
+
+    // license
+    const hasLicense = filePaths.some(p => /license/i.test(p));
+    if (hasLicense) {
+      observations.push('license file present');
+    } else {
+      observations.push('no visible license');
+    }
+
+    return observations;
+  }
+
+  private analyzeStructuralCoherence(filePaths: string[]): string[] {
+    const observations: string[] = [];
+
+    // directory structure
+    const directories = new Set<string>();
+    filePaths.forEach(path => {
+      const parts = path.split('/');
+      if (parts.length > 1) {
+        directories.add(parts[0]);
+      }
+    });
+
+    // check for common patterns
+    const hasSourceDir = filePaths.some(p => p.startsWith('src/') || p.startsWith('lib/'));
+    const hasTestDir = filePaths.some(p => p.startsWith('test/') || p.startsWith('tests/'));
+    const hasDocsDir = filePaths.some(p => p.startsWith('docs/') || p.startsWith('documentation/'));
+
+    if (hasSourceDir && hasTestDir) {
+      observations.push('separated source and test directories');
+    } else if (!hasSourceDir) {
+      observations.push('no clear source directory boundary');
+    }
+
+    // config sprawl
+    const configFiles = filePaths.filter(p => {
+      const name = p.split('/').pop()?.toLowerCase() || '';
+      return name.includes('config') ||
+             name.startsWith('.') ||
+             name.endsWith('.json') ||
+             name.endsWith('.yaml') ||
+             name.endsWith('.yml') ||
+             name.endsWith('.toml');
+    });
+
+    if (configFiles.length > 10) {
+      observations.push(`${configFiles.length} configuration files (some sprawl)`);
+    } else if (configFiles.length > 0) {
+      observations.push(`${configFiles.length} configuration files`);
+    }
+
+    // check for utils/misc gravity wells
+    const hasUtils = filePaths.some(p => /\/utils?\/|\/misc\/|\/common\/|\/shared\//i.test(p));
+    if (hasUtils) {
+      observations.push('utility directories present (possible gravity well)');
+    }
+
+    // root file clutter
+    const rootFiles = filePaths.filter(p => !p.includes('/')).length;
+    if (rootFiles > 15) {
+      observations.push(`${rootFiles} files in root (some clutter)`);
+    }
+
+    return observations;
+  }
+
+  private analyzeDependencyRisk(filePaths: string[]): string[] {
+    const observations: string[] = [];
+
+    // check for dependency manifests
+    const hasPackageJson = filePaths.some(p => p === 'package.json');
+    const hasLockfile = filePaths.some(p =>
+      p === 'package-lock.json' ||
+      p === 'yarn.lock' ||
+      p === 'pnpm-lock.yaml'
+    );
+    const hasCargoLock = filePaths.some(p => p === 'Cargo.lock');
+    const hasGoSum = filePaths.some(p => p === 'go.sum');
+    const hasPipfileLock = filePaths.some(p => p === 'Pipfile.lock');
+
+    if (hasPackageJson && !hasLockfile) {
+      observations.push('missing lockfile (version drift possible)');
+    } else if (hasPackageJson && hasLockfile) {
+      observations.push('dependency versions pinned');
+    }
+
+    if (hasCargoLock) {
+      observations.push('rust dependencies locked');
+    }
+
+    if (hasGoSum) {
+      observations.push('go module checksums present');
+    }
+
+    // check for multiple package managers
+    const packageManagers = [];
+    if (hasPackageJson) packageManagers.push('npm');
+    if (filePaths.some(p => p === 'Cargo.toml')) packageManagers.push('cargo');
+    if (filePaths.some(p => p === 'go.mod')) packageManagers.push('go modules');
+    if (filePaths.some(p => p === 'requirements.txt' || p === 'pyproject.toml')) packageManagers.push('python');
+
+    if (packageManagers.length > 2) {
+      observations.push(`${packageManagers.length} different package ecosystems`);
+    }
+
+    return observations;
+  }
+
+  private generateSynthesisObservations(
+    findings: SecurityFinding[],
+    filePaths: string[],
+    repoInfo: RepoInfo | null,
+    confidenceLevel: 'HIGH' | 'MEDIUM' | 'LOW'
+  ): string[] {
+    const observations: string[] = [];
+
+    // cross-reference patterns
+    const hasCriticalFindings = findings.some(f => f.severity === 'critical');
+    const hasHighFindings = findings.some(f => f.severity === 'high');
+    const hasTests = filePaths.some(p => /test|spec/.test(p.toLowerCase()));
+    const isLargeRepo = filePaths.length > 500;
+
+    if (hasCriticalFindings) {
+      observations.push('critical patterns detected.');
+    } else if (hasHighFindings && !hasTests) {
+      observations.push('risk signals present, test coverage unclear.');
+    }
+
+    if (isLargeRepo && confidenceLevel === 'LOW') {
+      observations.push('large codebase, limited visibility.');
+    }
+
+    // maintainer signals
+    if (repoInfo && repoInfo.stars < 10 && repoInfo.forks < 3) {
+      const ageInDays = Math.floor((Date.now() - new Date(repoInfo.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+      if (ageInDays < 30) {
+        observations.push('new project, limited track record.');
+      }
+    }
+
+    return observations;
+  }
+
+  private generateUncertaintyAreas(
+    confidenceLevel: 'HIGH' | 'MEDIUM' | 'LOW',
+    filePaths: string[],
+    findings: SecurityFinding[]
+  ): string[] {
+    const areas: string[] = [];
+
+    if (confidenceLevel === 'LOW') {
+      areas.push('limited file access');
+      areas.push('incomplete pattern coverage');
+    } else if (confidenceLevel === 'MEDIUM') {
+      areas.push('some files remain unscanned');
+    }
+
+    // check for binary files
+    const hasBinaries = filePaths.some(p =>
+      /\.exe$|\.dll$|\.so$|\.dylib$|\.bin$|\.wasm$/i.test(p)
+    );
+    if (hasBinaries) {
+      areas.push('binary files present (opaque)');
+    }
+
+    // check for large files that might not have been fully analyzed
+    const hasLargeAssets = filePaths.some(p =>
+      /\.zip$|\.tar$|\.gz$|\.jar$/i.test(p)
+    );
+    if (hasLargeAssets) {
+      areas.push('compressed archives (contents not inspected)');
+    }
+
+    // runtime behavior unknowns
+    areas.push('runtime behavior not observable');
+    areas.push('network activity unclear');
+
+    if (findings.length === 0) {
+      areas.push('absence of findings isn\'t proof of safety');
+    }
+
+    return areas;
   }
 
 }

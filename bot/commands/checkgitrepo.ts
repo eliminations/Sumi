@@ -57,7 +57,7 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
       const confidenceScore = analysis.confidenceScore ?? 30;
 
       const mascot = getShortMascot(Math.random() < 0.5 ? 'cat' : 'octopus');
-      
+
       // opening: acknowledge action taken
       const openingVariants = [
         'i took a look.',
@@ -66,48 +66,90 @@ export function createCheckGitRepoHandler(scanner: GitHubScanner, analyzer: Secu
         'i looked where i could.',
         'i started tracing the surface.'
       ];
-      
+
       let response = `${mascot}\n\n`;
       response += openingVariants[Math.floor(Math.random() * openingVariants.length)] + '\n\n';
-      
-      // middle: describe observations
-      response += `Security Score: ${String(score).padStart(3)} / 100\n`;
-      response += `Risk Level:     ${riskLevel}\n`;
-      response += getConfidenceMeter(confidenceScore, confidenceLevel) + '\n';
 
-      if (analysis.scoreRationale) {
-        response += `\n${analysis.scoreRationale}\n`;
+      // layer 0: surface reality
+      if (analysis.surfaceReality) {
+        response += 'what\'s here:\n';
+        for (const observation of analysis.surfaceReality) {
+          response += `  ${observation}\n`;
+        }
+        response += '\n';
       }
 
-      // surface uncertainty naturally
-      if (confidenceLevel !== 'HIGH') {
-        const uncertaintyNotes = [
-          'there\'s still more i haven\'t seen.',
-          'this only covers part of it.',
-          'some depth remains unmeasured.',
-          'the picture isn\'t complete.',
-          'absence of evidence isn\'t clarity.'
-        ];
-        response += '\n' + uncertaintyNotes[Math.floor(Math.random() * uncertaintyNotes.length)] + '\n';
-      } else {
-        const highConfidenceNotes = [
-          'visible structure seems consistent.',
-          'what i could see suggests...',
-          'patterns appear stable.',
-          'surface looks coherent.'
-        ];
-        response += '\n' + highConfidenceNotes[Math.floor(Math.random() * highConfidenceNotes.length)] + '\n';
+      // layer 1: structural coherence
+      if (analysis.structuralObservations && analysis.structuralObservations.length > 0) {
+        response += 'structure:\n';
+        for (const observation of analysis.structuralObservations) {
+          response += `  ${observation}\n`;
+        }
+        response += '\n';
       }
-      
-      // closing: suggest continued attention or caution
+
+      // layer 2: dependency risk
+      if (analysis.dependencyObservations && analysis.dependencyObservations.length > 0) {
+        response += 'dependencies:\n';
+        for (const observation of analysis.dependencyObservations) {
+          response += `  ${observation}\n`;
+        }
+        response += '\n';
+      }
+
+      // specific findings if any
+      if (analysis.findings && analysis.findings.length > 0) {
+        response += 'what stands out:\n';
+        const topFindings = analysis.findings.slice(0, 3);
+        for (const finding of topFindings) {
+          const location = finding.file ? ` (${finding.file})` : '';
+          response += `  ${finding.description}${location}\n`;
+        }
+        if (analysis.findings.length > 3) {
+          response += `  ...and ${analysis.findings.length - 3} more patterns\n`;
+        }
+        response += '\n';
+      }
+
+      // synthesis observations
+      if (analysis.synthesisObservations && analysis.synthesisObservations.length > 0) {
+        for (const observation of analysis.synthesisObservations) {
+          response += `${observation}\n`;
+        }
+        response += '\n';
+      }
+
+      // uncertainty concentration
+      if (analysis.uncertaintyAreas && analysis.uncertaintyAreas.length > 0) {
+        response += 'where uncertainty concentrates:\n';
+        for (const area of analysis.uncertaintyAreas) {
+          response += `  ${area}\n`;
+        }
+        response += '\n';
+      }
+
+      // fallback rationale if new fields not present
+      if (!analysis.surfaceReality && analysis.scoreRationale) {
+        response += `${analysis.scoreRationale}\n\n`;
+      }
+
+      // wallet/intentional vulnerability notes
+      if (analysis.walletNote) {
+        response += `${analysis.walletNote}\n\n`;
+      }
+      if (analysis.intentionalVulnerabilityNote) {
+        response += `${analysis.intentionalVulnerabilityNote}\n\n`;
+      }
+
+      // closing: suggest continued attention
       const closingVariants = [
         'worth keeping an eye on.',
         'i wouldn\'t stop watching it.',
         'attention over time would help.',
-        'it\'s too early to relax.',
-        'nothing here asks for trust yet.'
+        'deserves human judgment.',
+        'context matters here.'
       ];
-      response += '\n' + closingVariants[Math.floor(Math.random() * closingVariants.length)];
+      response += closingVariants[Math.floor(Math.random() * closingVariants.length)];
 
       const formattedResponse = formatResponse(response);
       await ctx.reply(`\`\`\`\n${formattedResponse}\n\`\`\``, { parse_mode: 'Markdown', ...replyOptions });
